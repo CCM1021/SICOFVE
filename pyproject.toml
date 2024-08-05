@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "traffic-flow-prediction"
+version = "0.1.0"
+description = ""
+authors = ["Kazymov_006 <RaySkarken@gmail.com>"]
+readme = "README.md"
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torch = { url = "https://download.pytorch.org/whl/cu118/torch-2.0.1%2Bcu118-cp310-cp310-win_amd64.whl" }
+torchvision = { url = "https://download.pytorch.org/whl/cu118/torchvision-0.15.2%2Bcu118-cp310-cp310-win_amd64.whl" }
+ultralytics = "^8.0.132"
+supervision = "^0.11.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
