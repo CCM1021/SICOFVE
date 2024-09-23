@@ -1,12 +1,25 @@
-SICOFVE (SIstema de Conteo y clasificación de Flujo VEhicular y peatonal)
-Desarrollado por: Carlos Cerdas Mora
-En supervisión por el Dr. Irving Pizarro Marchena
-CIVCO 2024
+# traffic flow prediction
+## Requirements
+Windows 10, python 3.10
+if you have another OS you need to change repository url for pytorch in pyproject.toml file
 
-Este repositorio consta de los archivos necesarios para la aplicación de análisis, clasificación y conteo vehicular y peatonal. 
-Consta de tres diferentes módulos:
-Módulo de procesamiento por medio de Inteligencia Artificial (YOLO) y conteo.
-Módulo de síntesis de funcionamiento para el programa general.
-Módulo de visualización de los datos.
+## Build instructions
+```shell
+python -m pip install -r requirements.txt
+python -m poetry shell
+poetry install
+python main.py 
+```
+
+## Description of work
+My algorithm detects vehicles and counts them for both up and down directions. Also, it predicts cars'speed when they're passing drawn line.
+
+Мой алгоритм считает проезжающие по левой и правой полосам автомобили и фиксирует их скорость в момент пересечения некоторой линии которую я отображаю на видео.
+
+example of work - https://youtu.be/ocjWR-s7lg8
 
 
+## Stream source
+https://www.geocam.ru/en/online/transportnaya-2/
+
+Southern Federal District › Krasnodar Krai › Sochi Municipality › Sochi > Transport Street
