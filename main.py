@@ -78,7 +78,7 @@ def main(camera_source, distance, cy1, cy2, cx1, cx2, nombre):
             print("Failed to capture frame")
             break
 
-        frame = cv2.resize(frame, (1020, 500))
+        frame = cv2.resize(frame, (1080, 540))
 
         # Procesa frames directamente
         results = model(frame)
@@ -170,10 +170,10 @@ def main(camera_source, distance, cy1, cy2, cx1, cx2, nombre):
 
         cv2.imshow("yolov8", frame)
 
-        if cv2.waitKey(30) == 27:  # press Esc to exit
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
             
-
+    
     cap.release()
     cv2.destroyAllWindows()
 

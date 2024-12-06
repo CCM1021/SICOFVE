@@ -40,9 +40,16 @@ class MyFrame(wx.Frame):
         # Botón para eliminar una cámara
         self.btn_delete_camera = wx.Button(panel, label="Eliminar Cámara")
         self.btn_delete_camera.Bind(wx.EVT_BUTTON, self.on_delete_camera)
+        # Dentro del constructor __init__, añade el botón de autocalibración
+        self.btn_auto_calibrate = wx.Button(panel, label="Autocalibración")
+        self.btn_auto_calibrate.Bind(wx.EVT_BUTTON, self.on_auto_calibration)
+
+       
 
         # Layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
+         # Añade el botón al layout
+        
 
         grid_sizer = wx.GridSizer(rows=6, cols=2, hgap=10, vgap=10)
 
@@ -69,10 +76,83 @@ class MyFrame(wx.Frame):
         main_sizer.Add(self.btn_start, flag=wx.ALIGN_CENTER | wx.ALL, border=10)
         main_sizer.Add(self.btn_add_camera, flag=wx.ALIGN_CENTER | wx.ALL, border=10)
         main_sizer.Add(self.btn_delete_camera, flag=wx.ALIGN_CENTER | wx.ALL, border=10)
+        main_sizer.Add(self.btn_auto_calibrate, flag=wx.ALIGN_CENTER | wx.ALL, border=10)
 
         panel.SetSizer(main_sizer)
         self.Center()
         self.Show()
+
+
+        
+
+        # Método para manejar el evento del botón de autocalibración
+    def on_auto_calibration(self, event):       
+      
+        selected_camera = self.camera_choice.GetStringSelection()
+        if not selected_camera:
+            wx.MessageBox("Please select a camera.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        camera_data = self.get_camera_data(selected_camera)
+        if camera_data is None:
+            wx.MessageBox("Selected camera data not found.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        try:
+            name = self.camera_choice.GetStringSelection()
+        except ValueError:
+            wx.MessageBox("Please enter valid integers for coordinates and distance.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+      
+
+        # Mostrar cuadro de diálogo para confirmar la ejecución
+        confirm_dialog = wx.MessageDialog(
+            self,
+            "¿Está seguro de que desea ejecutar la autocalibración? Recuerde que necesita tener en el ángulo de visión de la cámara al menos dos códigos para que pueda autocalibrarse correctamente.",
+            "Advertencia",
+            wx.YES_NO | wx.ICON_WARNING
+        )
+        
+
+        if confirm_dialog.ShowModal() == wx.ID_YES:
+            # Comando para ejecutar el archivo calibration.py con el índice de la cámara
+            nombre = (camera_data['link'])
+            command_to_run = f'poetry run python calibration.py {nombre}'
+            
+            
+
+            try:
+                if sys.platform.startswith('win'):
+                    # En Windows
+                    subprocess.Popen(['start', 'cmd', '/k', f'{command_to_run} && exit'], shell=True)
+
+                elif sys.platform.startswith('linux'):
+                    # En Linux
+                    subprocess.Popen(['gnome-terminal', '--', 'bash', '-c', command_to_run])
+                elif sys.platform == 'darwin':
+                    # En macOS
+                    subprocess.Popen(['open', '-a', 'Terminal.app', 'bash', '-c', command_to_run])
+                else:
+                    wx.MessageBox(
+                        "Sistema operativo no soportado para ejecutar autocalibración.",
+                        "Error",
+                        wx.OK | wx.ICON_ERROR
+                    )
+            except Exception as e:
+                wx.MessageBox(
+                    f"Error al ejecutar autocalibración: {e}",
+                    "Error",
+                    wx.OK | wx.ICON_ERROR
+                )
+        else:
+            # El usuario seleccionó "No", no hacer nada
+            wx.MessageBox(
+                "Autocalibración cancelada por el usuario.",
+                "Cancelado",
+                wx.OK | wx.ICON_INFORMATION
+            )
+
 
     def resource_path(self, relative_path):
         if getattr(sys, 'frozen', False):
@@ -139,24 +219,31 @@ class MyFrame(wx.Frame):
         analysis_thread.start()
 
     def run_analysis_script(self, camera_link, distance, x1, y1, x2, y2, name):
-
-    # Comando para ejecutar main.py dentro del entorno virtual de poetry
+         
         command_to_run = f'poetry run python main.py {camera_link} {distance} {x1} {y1} {x2} {y2} {name}'
 
-        if sys.platform.startswith('win'):
-            # En Windows, abrir una consola de cmd y ejecutar poetry run seguido del script
-            subprocess.Popen(['start', 'cmd', '/k', command_to_run], shell=True)
+        try:
+            if sys.platform.startswith('win'):
+                subprocess.Popen(['start', 'cmd', '/k', f'{command_to_run} && exit'], shell=True)
+            elif sys.platform.startswith('linux'):
+                subprocess.Popen(['gnome-terminal', '--', 'bash', '-c', command_to_run])
+            elif sys.platform == 'darwin':
+                subprocess.Popen(['open', '-a', 'Terminal.app', 'bash', '-c', command_to_run])
+            else:
+                wx.CallAfter(wx.MessageBox, "Sistema operativo no soportado para ejecución en terminal separada.", "Error", wx.OK | wx.ICON_ERROR)
+                return
+        except Exception as e:
+            wx.CallAfter(wx.MessageBox, f"Error al ejecutar el análisis: {e}", "Error", wx.OK | wx.ICON_ERROR)
+            return
 
-        elif sys.platform.startswith('linux'):
-            # En Linux, abrir una nueva terminal y ejecutar poetry run seguido del script
-            subprocess.Popen(['gnome-terminal', '--', 'bash', '-c', command_to_run])
-
-        elif sys.platform == 'darwin':
-            # En macOS, abrir una nueva terminal de Terminal.app y ejecutar poetry run seguido del script
-            subprocess.Popen(['open', '-a', 'Terminal.app', 'bash', '-c', command_to_run])
-
-        else:
-            wx.CallAfter(wx.MessageBox, "Operating system not supported for separate terminal execution.", "Error", wx.OK | wx.ICON_ERROR)
+        
+        
+    def ask_continue(self):
+        
+        dialog = wx.MessageDialog(self, "¿Desea continuar?", "Confirmación", wx.YES_NO | wx.ICON_QUESTION)
+        response = dialog.ShowModal()
+        dialog.Destroy()
+        return response == wx.ID_YES
 
     def get_camera_data(self, camera_name):
         if camera_name.startswith("Camera "):
